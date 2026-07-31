@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from pDynamoWrapper.pDynamoWrapper import Wrapper, Unpickle
-from init_systems import get_folder_name, get_pkl_names
+from pDynamoWrapper.pDynamoWrapper import Wrapper
 
 import os,sys
-from pBabel import ImportCoordinates3, ImportSystem
 
 
 
@@ -17,8 +15,9 @@ def RUN2D(_variation,qm_region, hamiltonian,_forces=[1200.0,400.0],mark="F1",ini
     _parameters = {
         "Input_Type":"pkl",
         "pkl_file":_pkl_file_name,
-        "atoms_rc1":["*:SOL.18938:OW","*:SOL.18938:HW2","*:HID.329:NE2"],
-		"atoms_rc2":["*:ZN.466:*", "*:SOL.18938:OW", "*:CO2.520:C"],
+        "atoms_rc1":["*:SPC.541:O","*:SPC.541:H2","*:ace.307:O2"],
+		"atoms_rc2":["*:SPC.541:H2","*:SPC.541:O","*:CO2.415:C"],
+       
 		"type_rc1":"Distance",
 		"type_rc2":"Distance",
 		"mass_constraints":["no","no"],
@@ -28,17 +27,16 @@ def RUN2D(_variation,qm_region, hamiltonian,_forces=[1200.0,400.0],mark="F1",ini
         "enable_debug_file": True,
         "debug_verbosity": "DEBUG",
     }
-    
-    if hamiltonian == "am1" and qm_region == 1:
-       _parameters["atoms_rc1"]=["*:SOL.18938:OW","*:SOL.18938:HW2","*:HIE.348:ND1"]
-    if _variation == "ACLI":
-         _parameters["atoms_rc1"]=["*:SOL.17757:OW","*:SOL.17757:HW1","*:HID.329:NE2"]
-         _parameters["atoms_rc2"]=["*:ZN.466:*", "*:SOL.17757:OW", "*:CO2.500:C7"]
 
-    if initial_crd is not None:
-       _parameters["pkl_file"] = initial_crd    
-      
-    
+    if qm_region == 2: 
+        _parameters["atoms_rc1"]=["*:SPC.464:O","*:SPC.464:H2","*:ace.257:O2"]
+        _parameters["atoms_rc2"]=["*:SPC.464:H2","*:SPC.464:O","*:CO2.413:C"]
+        if hamiltonian=="am1dphot" or hamiltonian=="pm3" or hamiltonian=="rm1":		
+            _parameters["atoms_rc1"]=["*:SPC.464:O","*:SPC.464:H1","*:ace.257:O2"]	
+    elif qm_region == 3:
+        _parameters["atoms_rc1"]=["*:SPC.681:O","*:SPC.681:H2","*:ace.342:O1"]
+        _parameters["atoms_rc2"]=["*:SPC.681:H2","*:SPC.681:O","*:CO2.414:C"]
+
     scan_parameters = {
 
 		"simulation_type":"Relaxed_Surface_Scan",		
@@ -46,9 +44,9 @@ def RUN2D(_variation,qm_region, hamiltonian,_forces=[1200.0,400.0],mark="F1",ini
 		"maxIterations":2200,
 		"log_frequency":10,
 		"nsteps_rc1":-1,
-		"nsteps_rc2":40,
+		"nsteps_rc2":-1,
 		"restart":"yes",
-		"NmaxThreads":40,
+		"NmaxThreads":16,
         "dincre_rc1":0.1,
 		"dincre_rc2":0.1,
 		"force_constants":[_forces[0],_forces[1]]
@@ -76,7 +74,7 @@ def RUN_ALL(_variation):
                 print("==============================================")
                 print(f"Running QM region: {qm_region}")
                 print("==============================================")
-                for hamiltonian in ["am1","pm3","pm6"]:
+                for hamiltonian in ["am1","pm3","pm6","pddgpm3","am1dphot","rm1"]:
                     print("==============================================")
                     print(f"Running Hamiltonian: {hamiltonian}")
                     print("==============================================")

@@ -59,15 +59,13 @@ def RunMMopts(_variation= "AC"):
 def SET_QMMM(_variation= "AC", _qm_region = 1, _hamiltonian = "am1"):
     '''
     '''
-    pkl_file_name = os.path.join(_variation, "OPT_MM","opt_mm.pkl")
-    if not os.path.exists(pkl_file_name):
-        RunMMopts(_variation)  
+    pkl_file_name = os.path.join(_variation, "OPT_MM","opt_mm.pkl")    
+    if not os.path.exists(pkl_file_name): RunMMopts(_variation)  
 
-    folder_name = os.path.join(_variation, "QMMM"+str(_qm_region)+"/"+_hamiltonian)
+    folder_name = os.path.join(_variation, "QMMM"+str(_qm_region), _hamiltonian)
     
     center_atom = "*:CO2.415:C"
     radius = 5.0
-    _parameters = {}   
     if _qm_region == 2:
         center_atom = "*:CO2.413:C"
     elif _qm_region == 3:
@@ -105,6 +103,8 @@ def SET_QMMM(_variation= "AC", _qm_region = 1, _hamiltonian = "am1"):
 		"set_qc_region":"yes",		
 		"correct_QMMM_charge":"yes",
 		"QCcharge":0,
+        "radius":radius,
+        "center_atom":center_atom,
 		"save_format":".dcd",
 		"save_frequency":20,
 		"log_frequency":10,
