@@ -5,86 +5,26 @@ from pDynamoWrapper.pDynamoWrapper import Wrapper
 
 import os,sys
 
-#======================================================
-def get_pkl_names(_variation,_simulation_folder):
-    pkl_file_name = "ac_system.pkl"
-    if _variation == "AC":                    
-        pkl_file_name = "AC/"+_simulation_folder+"/ac_system.pkl"           
-    elif _variation == "AC_contaminants":     
-        pkl_file_name = "AC_cnt/"+_simulation_folder+"/ac_cnt_system.pkl"
-    elif _variation == "ACLI":                
-        pkl_file_name = "ACLI/"+_simulation_folder+"/acli_system.pkl"
-    elif _variation == "ACLI_QS":             
-        pkl_file_name = "ACLI_QS/"+_simulation_folder+"/acli_qs_system.pkl"
-    elif _variation == "ACLI_QS_contaminants":
-        pkl_file_name = "ACLI_QS_cnt/"+_simulation_folder+"/acli_qs_cnt_system.pkl"
-    elif _variation == "ACLI_contaminants":     
-        pkl_file_name = "ACLI_cnt/"+_simulation_folder+"/acli_cnt_system.pkl"
-    
-    return pkl_file_name
-#------------------------------------------------------
-def get_folder_name(_variation, _simulation_type):
-    folder_name = _simulation_type
-    if _variation == "AC":                      folder_name = "AC/"+_simulation_type
-    elif _variation == "AC_contaminants":       folder_name = "AC_cnt/"+_simulation_type
-    elif _variation == "ACLI":                  folder_name = "ACLI/"+_simulation_type
-    elif _variation == "ACLI_QS":               folder_name = "ACLI_QS/"+_simulation_type
-    elif _variation == "ACLI_QS_contaminants":  folder_name = "ACLI_QS_cnt/"+_simulation_type
-    elif _variation == "ACLI_contaminants":     folder_name = "ACLI_cnt/"+_simulation_type
 
-    return folder_name
 #======================================================
-def PrepareSystems(_variation= "AC"):
+def PrepareSystems(_variation= "ACO"):
 
     '''
     This functions prepares the systems for QM/MM simulations, by setting up the system parameters and saving the system objects for each variation of the system. The variations include:
-- AC: Carbonic anhydrase system with CO2 and Zn2+ in the active site, prepared for MM simulations.
-- AC_contaminants: Carbonic anhydrase system with CO2 and Zn2+ in the active site, prepared for MM simulations, with contaminants
-- ACLI: Carbonic anhydrase system with CO2 and Zn2+ in the active site, prepared for MM simulations, with Ionic liquids
-- ACLI_QS: Carbonic anhydrase system with CO2 and Zn2+ in the active site, for investigating chemissorption on the ionic liquids
-- ACLI_QS_contaminants: Carbonic anhydrase system with CO2 and Zn2+ in the active site, for investigating chemissorption on the ionic liquids, with contaminants
-- ACLI_contaminants: Carbonic anhydrase system with CO2 and Zn2+ in the active site, with ionic liquids and contaminants
     '''
 
     _parameters = {
 		"Input_Type":"amber",
-		"crd_file":"AC/ac_rep0.crd",
-		"top_file":"AC/ac_topology_amber.top",
-		"set_initial_crd":"AC/analysisZN_CO2_0.pdb"
+		"crd_file":"ACO/FF_ACO_4pDynamo.crd",
+		"top_file":"ACO/FF_ACO_4pDynamo.top",
 	}
-    _save_name = "ac_system"
-    _topol_file = "AC/ac_topology_amber.top"
-    _crd_file = "AC/ac_rep0.crd"
-    _initial_crd = "AC/analysisZN_CO2_0.pdb"
-    save_name = "ac_system"
-    if _variation == "AC_contaminants":
-        _topol_file = "AC_cnt/ac_cnt_topology_amber.top"
-        _crd_file = "AC_cnt/ac_cnt_rep0.crd"
-        _initial_crd = "AC_cnt/analysisZN_CO2_0.pdb"
-    elif _variation == "ACLI":
-        _topol_file = "ACLI/ac_li.top"
-        _crd_file = "ACLI/ac_li.crd"
-        _initial_crd = "ACLI/analysisZN_CO2_10.pdb"
-        save_name = "acli_system"
-    elif _variation == "ACLI_QS":
-        _topol_file = "ACLI_QS/ac_li.top"
-        _crd_file = "ACLI_QS/ac_li.crd"
-        _initial_crd = "ACLI_QS/analysisZN_CO2_10.pdb"
-        save_name = "acli_qs_system"
-    elif _variation == "ACLI_QS_contaminants":
-        _topol_file = "ACLI_QS_cnt/ac_li_cnt.top"
-        _crd_file = "ACLI_QS_cnt/ac_li_cnt.crd"
-        _initial_crd = "ACLI_QS_cnt/analysisZN_CO2_10.pdb"
-    elif _variation == "ACLI_contaminants":
-        _topol_file = "ACLI_cnt/ac_li_cnt.top"
-        _crd_file = "ACLI_cnt/ac_li_cnt.crd"
-        _initial_crd = "ACLI_cnt/analysisZN_CO2_10.pdb"
+    if _variation == "IMI":               
+        _parameters["top_file"] = "IMI/FF_IMI_4pDynamo.top"
+        _parameters["crd_file"] = "IMI/FF_IMI_4pDynamo.crd"
 
-    _parameters["top_file"] = _topol_file
-    _parameters["crd_file"] = _crd_file
-    _parameters["set_initial_crd"] = _initial_crd
+    folder_name = os.path.join(_variation, "Prep_MM")
+    save_name   = _variation+"_system"
 
-    folder_name = get_folder_name(_variation, "Prep_MM")
     sim = Wrapper(folder_name)
     sim.Set_System(_parameters)
     sim.SaveSystem(_cname=save_name)   
@@ -93,11 +33,11 @@ def PrepareSystems(_variation= "AC"):
 def RunMMopts(_variation= "AC"):
     '''
     '''
-    pkl_file_name = get_pkl_names(_variation, "Prep_MM")
+    pkl_file_name = os.path.join(_variation, "Prep_MM", _variation+ "_system.pkl")
     if not os.path.exists(pkl_file_name):
         PrepareSystems(_variation)  
 
-    folder_name = get_folder_name(_variation, "OPT_MM")   
+    folder_name = os.path.join(_variation, "OPT_MM")   
 
     _parameters = {
         "Input_Type":"pkl",
@@ -119,27 +59,19 @@ def RunMMopts(_variation= "AC"):
 def SET_QMMM(_variation= "AC", _qm_region = 1, _hamiltonian = "am1"):
     '''
     '''
-    pkl_file_name = get_folder_name(_variation, "OPT_MM")+"/opt_mm.pkl"
+    pkl_file_name = os.path.join(_variation, "OPT_MM","opt_mm.pkl")
     if not os.path.exists(pkl_file_name):
         RunMMopts(_variation)  
 
-    folder_name = get_folder_name(_variation, "QMMM"+str(_qm_region)+"/"+_hamiltonian)
+    folder_name = os.path.join(_variation, "QMMM"+str(_qm_region)+"/"+_hamiltonian)
     
-    center_atom = "*:ZN.466:ZN"
-    radius = 4.7
-    _parameters = {}
-    if _qm_region == 1:
-        center_atom = "*:ZN.466:ZN"
-    elif _qm_region == 2:
-        center_atom = "*:CO2.520:C"
-        if _variation == "ACLI":
-            center_atom = "*:CO2.500:C7"
+    center_atom = "*:CO2.415:C"
+    radius = 5.0
+    _parameters = {}   
+    if _qm_region == 2:
+        center_atom = "*:CO2.413:C"
     elif _qm_region == 3:
-        center_atom = "*:SOL.18938:OW"
-        radius = 4.0
-        if _variation == "ACLI":
-            center_atom = "*:SOL.17757:OW"
-            radius = 5.0
+        center_atom = "*:CO2.414:C"
 
     _parameters = {
 		"Input_Type":"pkl",
@@ -155,10 +87,8 @@ def SET_QMMM(_variation= "AC", _qm_region = 1, _hamiltonian = "am1"):
 		"set_fixed_atoms":center_atom,
 		"free_atoms_radius":20.0
 	}
-    if _variation == "AC_LI":
-        _parameters["spherical_prune_radius"] = 40.0
 	
-    if not os.path.exists( folder_name) or not os.path.exists(folder_name+"/opt_PrunedFixed"+_hamiltonian+".pkl"):
+    if not os.path.exists(folder_name) or not os.path.exists(folder_name+"/opt_PrunedFixed"+_hamiltonian+".pkl"):
         sim = Wrapper(folder_name)
         sim.Set_System(_parameters)
         sim.Run_Simulation(_parameters)
@@ -182,18 +112,7 @@ def SET_QMMM(_variation= "AC", _qm_region = 1, _hamiltonian = "am1"):
 		"maxIterations":2200,
 		"simulation_type":"Geometry_Optimization"
 	}
-
-    if not _qm_region == 4:
-        _qc_mmpars["center_atom"] = center_atom
-        _qc_mmpars["radius"] = radius
-    else:
-        if _variation == "AC":
-            _qc_mmpars["residue_patterns"] = ["*:ZN.466:*","*:SOL.18938:*","*:CO2.520:*","*:HID.329:*", "*:HIE.348:*","*:HID.331:*","*:HID.304:*","*:GLU.335:*","*:TYR.245:*","*:THR.414:*"]
-            _qc_mmpars["select_waters"] = 5.0
-        elif _variation == "ACLI":
-            _qc_mmpars["residue_patterns"] = ["*:ZN.466:*","*:CO2.500:*","*:HID.329:*", "*:HIE.348:*","*:HID.331:*","*:HID.304:*","*:GLU.335:*","*:TYR.245:*","*:THR.414:*"]
-            _qc_mmpars["select_waters"] = 5.0
-
+    
     sim = Wrapper(folder_name)
     sim.Set_System(_qc_mmpars)
     sim.Run_Simulation(_qc_mmpars)
